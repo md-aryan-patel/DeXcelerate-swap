@@ -1,5 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+const env = require("./src/utils/constants");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -8,13 +8,13 @@ module.exports = {
   defaultNetwork: "default",
 
   networks: {
-    default: {
-      url: "http://127.0.0.1:7545",
-    },
     // default: {
-    //   url: process.env.sepolia_network,
-    //   accounts: [process.env.admin_private_key],
+    //   url: "http://127.0.0.1:7545",
     // },
+    default: {
+      url: env.sepolia_network,
+      accounts: [env.admin_private_key],
+    },
   },
 
   paths: {

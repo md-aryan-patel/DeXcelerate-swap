@@ -442,8 +442,8 @@
       ]
     },
     "D:\\dexcelerate\\src\\backend\\contracts\\DeXcelFactory.sol": {
-      "lastModificationDate": 1685525780975,
-      "contentHash": "46f97363b9f0f3390f6b094ad50ff7c1",
+      "lastModificationDate": 1685683725547,
+      "contentHash": "2ce8c49cfe888f46846f33c2899543d0",
       "sourceName": "src/backend/contracts/DeXcelFactory.sol",
       "solcConfig": {
         "version": "0.8.17",

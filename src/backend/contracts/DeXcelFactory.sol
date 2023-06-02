@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "./interfaces/IDeXcelFactory.sol";
 import "./DeXcelPair.sol";
 
-contract DeXcelFactory is IDeXcelFactory{
+contract DeXcelFactory is IDeXcelFactory {
     address public feeTo;
     address public feeToSetter;
 
@@ -18,11 +18,19 @@ contract DeXcelFactory is IDeXcelFactory{
         return allPairs.length;
     }
 
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    function createPair(
+        address tokenA,
+        address tokenB
+    ) external returns (address pair) {
         require(tokenA != tokenB, "DeXcelerate factory: IDENTICAL_ADDRESSES");
-        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (address token0, address token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
         require(token0 != address(0), "DeXcelerate factory: ZERO_ADDRESS");
-        require(getPair[token0][token1] == address(0), "DeXcelerate factory: PAIR_EXISTS"); // single check is sufficient
+        require(
+            getPair[token0][token1] == address(0),
+            "DeXcelerate factory: PAIR_EXISTS"
+        ); // single check is sufficient
         bytes memory bytecode = type(DeXcelPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
@@ -44,5 +52,4 @@ contract DeXcelFactory is IDeXcelFactory{
         require(msg.sender == feeToSetter, "DeXcelerate factory: FORBIDDEN");
         feeToSetter = _feeToSetter;
     }
-
 }
