@@ -31,13 +31,10 @@ function CreatePair() {
     if (firstToken === secondToken) return alert("Both tokens are same");
     setIsLoading(true);
     const result = await createPair(firstToken, secondToken);
-    if (result === 1) {
-      setIsLoading(false);
-      return alert("Pair created successfully");
-    } else {
-      setIsLoading(false);
-      return alert("Pair creation failed\nPair already exist");
-    }
+    token1.current.value = "";
+    token2.current.value = "";
+    setIsLoading(false);
+    return alert("Pair created successfully");
   };
 
   return (

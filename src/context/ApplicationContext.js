@@ -2,7 +2,13 @@ import { ethers } from "ethers";
 import { createContext, useEffect, useState } from "react";
 import database from "../firebase/firebasedb";
 import factoryAbi from "../backend/artifacts/src/backend/contracts/DeXcelFactory.sol/DeXcelFactory.json";
+import routerAbi from "../backend/artifacts/src/backend/contracts/DeXcelRouter.sol/DeXcelRouter.json";
+import pairAbi from "../backend/artifacts/src/backend/contracts/DeXcelPair.sol/DeXcelPair.json";
+import erc20 from "../backend/artifacts/src/backend/contracts/interfaces/IERC20.sol/IERC20.json";
 import env from "../utils/constants";
+
+const toWei = (num) => ethers.utils.parseEther(num.toString());
+const toEth = (num) => ethers.utils.formatEther(num);
 
 export const ApplicationContext = createContext();
 
@@ -10,7 +16,7 @@ const { ethereum } = window;
 
 export const ApplicationProvider = ({ children }) => {
   const [currentAccount, setCurrentAccount] = useState("");
-  let factoryContract;
+  let factoryContract, signer, routerContract, pairContract;
 
   useEffect(() => {
     checIfWalletIsConnected();
@@ -24,9 +30,15 @@ export const ApplicationProvider = ({ children }) => {
   const handleContract = async () => {
     const currentProvider = new ethers.providers.Web3Provider(ethereum);
     await currentProvider.send("eth_requestAccounts", []);
-    const signer = currentProvider.getSigner();
+    signer = currentProvider.getSigner();
     factoryContract = new ethers.Contract(env.factory, factoryAbi.abi, signer);
-    console.log("created contract...");
+    routerContract = new ethers.Contract(env.router, routerAbi.abi, signer);
+  };
+
+  const getLpBalance = async (_pairAddress) => {
+    pairContract = new ethers.Contract(_pairAddress, pairAbi.abi, signer);
+    const balance = await pairContract.balanceOf(currentAccount);
+    return formatNumber(toEth(balance));
   };
 
   const checIfWalletIsConnected = async () => {
@@ -65,7 +77,13 @@ export const ApplicationProvider = ({ children }) => {
       const receipt = await result.wait();
       const events = receipt.events;
       const event = events[0];
-      database.pushPair(event.args.token0, event.args.token1, event.args.pair);
+      database.pushPair(
+        event.args.token0,
+        event.args.name0,
+        event.args.token1,
+        event.args.name1,
+        event.args.pair
+      );
       return receipt.status;
     } catch (err) {
       console.error(err);
@@ -73,9 +91,84 @@ export const ApplicationProvider = ({ children }) => {
     }
   };
 
+  const fetchAllPairs = async () => {
+    try {
+      const data = await database.fetchAllPairs();
+      return data;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const formatNumber = (number) => {
+    return Math.floor(number * 100) / 100;
+  };
+
+  const fetchBalance = async (_token0, _token1) => {
+    const token0 = new ethers.Contract(_token0, erc20.abi, signer);
+    const token1 = new ethers.Contract(_token1, erc20.abi, signer);
+    let balance0 = await token0.balanceOf(currentAccount);
+    let balance1 = await token1.balanceOf(currentAccount);
+    balance0 = formatNumber(toEth(balance0));
+    balance1 = formatNumber(toEth(balance1));
+    return [balance0, balance1];
+  };
+
+  const _addLiquidity = async (_token0, _token1, _amount0, _amount1) => {
+    const token0 = new ethers.Contract(_token0, erc20.abi, signer);
+    const token1 = new ethers.Contract(_token1, erc20.abi, signer);
+    const receipt1 = await token0.approve(env.router, toWei(_amount0));
+    await receipt1.wait();
+    const receipt2 = await token1.approve(env.router, toWei(_amount1));
+    await receipt2.wait();
+    const data = Math.floor(Date.now() / 1000) + 3600;
+    const result = await routerContract.addLiquidity(
+      _token0,
+      _token1,
+      toWei(_amount0),
+      toWei(_amount1),
+      0,
+      0,
+      currentAccount,
+      data
+    );
+    const status = await result.wait();
+    return status;
+  };
+
+  const swapTokens = async (_token0, _token1, _amount0) => {
+    const token0 = new ethers.Contract(_token0, erc20.abi, signer);
+    const receipt1 = await token0.approve(env.router, toWei(_amount0));
+    await receipt1.wait();
+    const data = Math.floor(Date.now() / 1000) + 3600;
+    try {
+      const receipt = await routerContract.swapExactTokensForTokens(
+        toWei(_amount0),
+        0,
+        [_token0, _token1],
+        currentAccount,
+        data
+      );
+      console.log(receipt.hash);
+      await receipt.wait();
+    } catch (err) {
+      console.log(`Application context error: ${err}`);
+    }
+    return receipt1.status;
+  };
+
   return (
     <ApplicationContext.Provider
-      value={{ currentAccount, connectWallet, createPair }}
+      value={{
+        currentAccount,
+        connectWallet,
+        createPair,
+        fetchAllPairs,
+        fetchBalance,
+        _addLiquidity,
+        getLpBalance,
+        swapTokens,
+      }}
     >
       {children}
     </ApplicationContext.Provider>

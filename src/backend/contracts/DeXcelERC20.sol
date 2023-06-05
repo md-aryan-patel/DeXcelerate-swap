@@ -4,19 +4,20 @@ pragma solidity ^0.8.9;
 import "./Utils/SafeMath.sol";
 import "./interfaces/IDeXcelERC20.sol";
 
-contract DeXcelERC20 is IDeXcelERC20 {
+contract DeXcelERC20 is IDeXcelERC20{
+
     using SafeMath for uint;
 
     string public constant name = "DeXcel coin";
     string public constant symbol = "DXCL";
     uint8 public constant decimals = 18;
-    uint256 MAX_INT = 2 ** 256 - 1;
-    uint public totalSupply;
+    uint256 MAX_INT = 2**256 - 1;
+    uint  public totalSupply;
 
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
 
-    function _mint(address to, uint value) internal {
+        function _mint(address to, uint value) internal {
         totalSupply = totalSupply.add(value);
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
@@ -49,15 +50,9 @@ contract DeXcelERC20 is IDeXcelERC20 {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint value
-    ) external returns (bool) {
+    function transferFrom(address from, address to, uint value) external returns (bool) {
         if (allowance[from][msg.sender] != MAX_INT) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(
-                value
-            );
+            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
         }
         _transfer(from, to, value);
         return true;

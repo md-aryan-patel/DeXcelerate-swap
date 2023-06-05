@@ -6,8 +6,6 @@ function Navbar() {
   const navigate = useNavigate();
   const { currentAccount, connectWallet } = useContext(ApplicationContext);
 
-  console.log(currentAccount);
-
   const truncateHex = (hex) => {
     const prefix = hex.slice(0, 2);
     const body = hex.slice(2, 4);

@@ -26,6 +26,18 @@
         },
         {
           "indexed": false,
+          "internalType": "string",
+          "name": "name0",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name1",
+          "type": "string"
+        },
+        {
+          "indexed": false,
           "internalType": "uint256",
           "name": "",
           "type": "uint256"

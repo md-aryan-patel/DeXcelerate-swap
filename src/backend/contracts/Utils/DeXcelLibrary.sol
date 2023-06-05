@@ -22,7 +22,7 @@ library DeXcelLibrary {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'd29ff92892b5a5a0e2919268b0518776e501167f275e2b40bff68ef28c72c58a' // init code hash
+                hex'd0c6a5c6dd6bd3736cf4ab8926234c67ed017fb0a04fd11084fd4decf20c0c2d' // init code hash
             )))));
     }
 
