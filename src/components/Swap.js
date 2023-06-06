@@ -3,8 +3,9 @@ import Modal from "react-modal";
 import { AiOutlineClose, AiOutlineArrowDown } from "react-icons/ai";
 import { ApplicationContext } from "../context/ApplicationContext";
 import Loader from "./Loader";
+import { swapMessage } from "../constants";
 
-function Swap() {
+const Swap = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [option1, setOption1] = useState("No token selected");
   const [option2, setOption2] = useState("No token selected");
@@ -36,19 +37,18 @@ function Swap() {
       parseInt(value1) === 0
     )
       return alert("Can't procede transaction with current values");
-    setLoading(true);
     if (parseInt(value1) > token1Balance) return alert("Insufficient Balance");
     let status;
-    // add swap function
+
     try {
+      setLoading(true);
       status = await swapTokens(currentPair.token0, currentPair.token1, value1);
+      setLoading(false);
+      alert("Transaction successfull");
     } catch (err) {
       console.log(`Swap error : ${err}`);
       setLoading(false);
     }
-
-    alert("Transaction successfull");
-    setLoading(false);
 
     inputRef1.current.value = "";
     const [balance0, balance1] = await fetchBalance(
@@ -75,26 +75,18 @@ function Swap() {
   };
 
   const switchPair = () => {
-    let temp;
     const pair = currentPair;
-    temp = pair.token0;
-    pair.token0 = pair.token1;
-    pair.token1 = temp;
-
-    temp = pair.name0;
-    pair.name0 = pair.name1;
-    pair.name1 = temp;
-    console.log(pair);
-
+    [pair.token0, pair.token1] = [pair.token1, pair.token0];
+    [pair.name0, pair.name1] = [pair.name1, pair.name0];
     setCurrentPair(pair);
-    setupFunction(pair);
+    setupFunction(currentPair);
   };
 
   return (
     <div className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center">
       <div
         onClick={switchPair}
-        className="flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-slate-600 rounded-md bg-slate-900 backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center"
+        className="flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-slate-600 rounded-md backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center"
       >
         <AiOutlineArrowDown className="text-white font-bold" />
       </div>
@@ -178,9 +170,9 @@ function Swap() {
           Swap
         </button>
       </div>
-      {loadin ? <Loader /> : <></>}
+      {loadin ? <Loader message={swapMessage} /> : <></>}
     </div>
   );
-}
+};
 
 export default Swap;

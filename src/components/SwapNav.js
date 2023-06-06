@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApplicationContext } from "../context/ApplicationContext";
 
@@ -28,7 +28,8 @@ function Navbar() {
         <div className="flex flex-row">
           <button
             onClick={() => navigate("/createpair")}
-            className="text-slate-300 font-poppins text-sm font-semibold hover:text-slate-100 ml-10"
+            className="text-slate-300 font-poppins text-sm font-semibold
+            hover:text-slate-100 ml-10"
           >
             Create Pair
           </button>

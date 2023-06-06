@@ -3,6 +3,7 @@ import Modal from "react-modal";
 import { AiOutlineClose } from "react-icons/ai";
 import { ApplicationContext } from "../context/ApplicationContext";
 import Loader from "./Loader";
+import { swapMessage } from "../constants";
 
 function AddLiquidity() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,18 +41,22 @@ function AddLiquidity() {
       value2 === "0"
     )
       return alert("Can't procede transaction with current values");
-    setLoading(true);
     if (parseInt(value1) > token1Balance || parseInt(value2) > token2Balance)
       return alert("Insufficient Balance");
-    const status = await _addLiquidity(
-      currentPair.token0,
-      currentPair.token1,
-      value1,
-      value2
-    );
-
-    alert("Transaction successfull");
-    setLoading(false);
+    try {
+      setLoading(true);
+      const status = await _addLiquidity(
+        currentPair.token0,
+        currentPair.token1,
+        value1,
+        value2
+      );
+      setLoading(false);
+      alert("Transaction successfull");
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
 
     inputRef1.current.value = "";
     inputRef2.current.value = "";
@@ -102,7 +107,7 @@ function AddLiquidity() {
           <div className="flex flex-row w-full h-fit text-white text-sm font-semibold justify-between p-1 m-1 cursor-pointer">
             <div>Select token</div>
             <AiOutlineClose
-              className=" text-lg"
+              className="text-lg"
               onClick={() => setIsOpen((prev) => !prev)}
             />
           </div>
@@ -126,7 +131,6 @@ function AddLiquidity() {
         >
           Select token pair
         </button>
-
         <div className="flex flex-col w-full h-fit justify-between rounded-2xl border border-slate-600 p-2">
           <div className=" flex flex-row">
             <input
@@ -185,7 +189,7 @@ function AddLiquidity() {
           </div>
         </div>
       </div>
-      {loadin ? <Loader /> : <></>}
+      {loadin ? <Loader message={swapMessage} /> : <></>}
     </div>
   );
 }

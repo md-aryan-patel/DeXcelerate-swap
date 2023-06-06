@@ -1,6 +1,7 @@
 import React, { useContext, useRef, useState } from "react";
 import { ApplicationContext } from "../context/ApplicationContext";
 import Loader from "./Loader";
+import { createPairMessage } from "../constants";
 
 function CreatePair() {
   const { createPair } = useContext(ApplicationContext);
@@ -30,11 +31,16 @@ function CreatePair() {
       return alert("Invalid token address");
     if (firstToken === secondToken) return alert("Both tokens are same");
     setIsLoading(true);
-    const result = await createPair(firstToken, secondToken);
+    try {
+      const result = await createPair(firstToken, secondToken);
+      setIsLoading(false);
+      alert("Pair created successfully");
+    } catch (err) {
+      console.log(err);
+      setIsLoading(false);
+    }
     token1.current.value = "";
     token2.current.value = "";
-    setIsLoading(false);
-    return alert("Pair created successfully");
   };
 
   return (
@@ -64,7 +70,7 @@ function CreatePair() {
       >
         Add Pair
       </button>
-      {isLoading ? <Loader /> : <></>}
+      {isLoading ? <Loader message={createPairMessage} /> : <></>}
     </div>
   );
 }

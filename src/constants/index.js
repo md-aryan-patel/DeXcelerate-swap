@@ -16,3 +16,8 @@ export const navLinks = [
     title: "Clients",
   },
 ];
+
+export const swapMessage =
+  "Don't reload your page\nFew metamask pop-up will appear.";
+
+export const createPairMessage = "Please don't reload you page";
