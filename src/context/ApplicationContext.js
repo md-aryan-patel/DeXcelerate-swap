@@ -16,15 +16,27 @@ const { ethereum } = window;
 
 export const ApplicationProvider = ({ children }) => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [currentChain, setCurrentChain] = useState("");
+
   let factoryContract, signer, routerContract, pairContract;
 
   useEffect(() => {
     checIfWalletIsConnected();
   }, []);
 
+  const setChain = async () => {
+    setCurrentChain(await ethereum.networkVersion);
+  };
+
+  setChain();
+
   ethereum.on("accountsChanged", () => {
     connectWallet();
     handleContract();
+  });
+
+  ethereum.on("networkChanged", () => {
+    setCurrentChain(ethereum.networkVersion);
   });
 
   const handleContract = async () => {
@@ -105,13 +117,20 @@ export const ApplicationProvider = ({ children }) => {
   };
 
   const fetchBalance = async (_token0, _token1) => {
+    console.log(`Token0: ${_token0}, Token1: ${_token1}`);
     const token0 = new ethers.Contract(_token0, erc20.abi, signer);
     const token1 = new ethers.Contract(_token1, erc20.abi, signer);
-    let balance0 = await token0.balanceOf(currentAccount);
-    let balance1 = await token1.balanceOf(currentAccount);
-    balance0 = formatNumber(toEth(balance0));
-    balance1 = formatNumber(toEth(balance1));
-    return [balance0, balance1];
+    try {
+      console.log(await token0.name());
+      let balance0 = await token0.balanceOf(currentAccount);
+      let balance1 = await token1.balanceOf(currentAccount);
+      balance0 = formatNumber(toEth(balance0));
+      balance1 = formatNumber(toEth(balance1));
+      return [balance0, balance1];
+    } catch (err) {
+      console.log(err);
+      return [0, 0];
+    }
   };
 
   const _addLiquidity = async (_token0, _token1, _amount0, _amount1) => {
@@ -157,9 +176,32 @@ export const ApplicationProvider = ({ children }) => {
     return receipt1.status;
   };
 
+  const changeNetwork = async (chainId) => {
+    if (!ethereum) return alert("Install Metamask");
+    if (ethereum.networkVersion === chainId.toString()) return;
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: ethers.utils.hexlify(chainId) }],
+      });
+      // window.location.reload();
+      return 1;
+    } catch (error) {
+      if (error.code === 4902) {
+        // User rejected the network switch
+        console.log("User rejected network switch");
+      } else {
+        // Other error occurred
+        console.error("Error occurred while switching network:", error);
+      }
+      return 0;
+    }
+  };
+
   return (
     <ApplicationContext.Provider
       value={{
+        currentChain,
         currentAccount,
         connectWallet,
         createPair,
@@ -168,6 +210,7 @@ export const ApplicationProvider = ({ children }) => {
         _addLiquidity,
         getLpBalance,
         swapTokens,
+        changeNetwork,
       }}
     >
       {children}

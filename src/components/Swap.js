@@ -64,6 +64,7 @@ const Swap = () => {
     setOption1(await _item.name0);
     setOption2(await _item.name1);
     setIsOpen(false);
+    console.log(_item);
     const [balance0, balance1] = await fetchBalance(_item.token0, _item.token1);
     setToken1Balance(balance0);
     setToken2Balance(balance1);
