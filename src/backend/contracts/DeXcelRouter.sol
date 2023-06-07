@@ -10,7 +10,7 @@ import "./DeXcelPair.sol";
 
 contract DeXcelRouter is IDeXcelRouter {
     using SafeMath for uint;
-    
+
     address public immutable override factory;
     address public immutable override WETH;
 
@@ -18,12 +18,12 @@ contract DeXcelRouter is IDeXcelRouter {
         factory = _factory;
         WETH = _WETH;
     }
-    
+
     receive() external payable {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
     }
 
-      // **** ADD LIQUIDITY ****
+    // **** ADD LIQUIDITY ****
     function _addLiquidity(
         address tokenA,
         address tokenB,
@@ -100,7 +100,7 @@ contract DeXcelRouter is IDeXcelRouter {
         liquidity = IDeXcelPair(pair).mint(to);
     }
 
-     // **** REMOVE LIQUIDITY ****
+    // **** REMOVE LIQUIDITY ****
     function removeLiquidity(
         address tokenA,
         address tokenB,
@@ -109,12 +109,7 @@ contract DeXcelRouter is IDeXcelRouter {
         uint amountBMin,
         address to,
         uint deadline
-    )
-        public
-        virtual
-        override
-        returns (uint amountA, uint amountB)
-    {
+    ) public virtual override returns (uint amountA, uint amountB) {
         address pair = DeXcelLibrary.pairFor(factory, tokenA, tokenB);
         DeXcelPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amount0, uint amount1) = IDeXcelPair(pair).burn(to);
@@ -122,17 +117,11 @@ contract DeXcelRouter is IDeXcelRouter {
         (amountA, amountB) = tokenA == token0
             ? (amount0, amount1)
             : (amount1, amount0);
-        require(
-            amountA >= amountAMin,
-            "DeXcelRouter: INSUFFICIENT_A_AMOUNT"
-        );
-        require(
-            amountB >= amountBMin,
-            "DeXcelRouter: INSUFFICIENT_B_AMOUNT"
-        );
+        require(amountA >= amountAMin, "DeXcelRouter: INSUFFICIENT_A_AMOUNT");
+        require(amountB >= amountBMin, "DeXcelRouter: INSUFFICIENT_B_AMOUNT");
     }
 
-     // **** SWAP ****
+    // **** SWAP ****
     // requires the initial amount to have already been sent to the first pair
     function _swap(
         uint[] memory amounts,
@@ -149,8 +138,12 @@ contract DeXcelRouter is IDeXcelRouter {
             address to = i < path.length - 2
                 ? DeXcelLibrary.pairFor(factory, output, path[i + 2])
                 : _to;
-            IDeXcelPair(DeXcelLibrary.pairFor(factory, input, output))
-                .swap(amount0Out, amount1Out, to, new bytes(0));
+            IDeXcelPair(DeXcelLibrary.pairFor(factory, input, output)).swap(
+                amount0Out,
+                amount1Out,
+                to,
+                new bytes(0)
+            );
         }
     }
 
@@ -160,12 +153,7 @@ contract DeXcelRouter is IDeXcelRouter {
         address[] calldata path,
         address to,
         uint deadline
-    )
-        external
-        virtual
-        override
-        returns (uint[] memory amounts)
-    {
+    ) external virtual override returns (uint[] memory amounts) {
         amounts = DeXcelLibrary.getAmountsOut(factory, amountIn, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,

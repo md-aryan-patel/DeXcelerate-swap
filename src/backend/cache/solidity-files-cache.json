@@ -110,8 +110,8 @@
       ]
     },
     "D:\\dexcelerate\\src\\backend\\contracts\\DeXcelPair.sol": {
-      "lastModificationDate": 1685941831588,
-      "contentHash": "c57100e281edc5708338e86a05538580",
+      "lastModificationDate": 1686114377880,
+      "contentHash": "70940831403313593cf2bfbc09c129e8",
       "sourceName": "src/backend/contracts/DeXcelPair.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -292,8 +292,8 @@
       ]
     },
     "D:\\dexcelerate\\src\\backend\\contracts\\DeXcelRouter.sol": {
-      "lastModificationDate": 1685941831584,
-      "contentHash": "70f47a5c8c743fda3463fb9003573110",
+      "lastModificationDate": 1686116020928,
+      "contentHash": "51f414b43d1489d9f6a2760845bf4b57",
       "sourceName": "src/backend/contracts/DeXcelRouter.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -369,8 +369,8 @@
       ]
     },
     "D:\\dexcelerate\\src\\backend\\contracts\\Utils\\DeXcelLibrary.sol": {
-      "lastModificationDate": 1685941831530,
-      "contentHash": "fc9ca529ce9a411b501109adddbab4ed",
+      "lastModificationDate": 1686118215528,
+      "contentHash": "f73f43512d115298ef58ccc85f4b6241",
       "sourceName": "src/backend/contracts/Utils/DeXcelLibrary.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -515,45 +515,6 @@
       ],
       "artifacts": [
         "InitCodeHashGenerator"
-      ]
-    },
-    "D:\\dexcelerate\\src\\backend\\contracts\\temp.sol": {
-      "lastModificationDate": 1685941831591,
-      "contentHash": "78ef17d4c29ce7a9f36114501040e661",
-      "sourceName": "src/backend/contracts/temp.sol",
-      "solcConfig": {
-        "version": "0.8.17",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol",
-        "@openzeppelin/contracts/access/Ownable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "random2"
       ]
     },
     "D:\\dexcelerate\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
@@ -775,6 +736,45 @@
       ],
       "artifacts": [
         "IERC20Metadata"
+      ]
+    },
+    "D:\\dexcelerate\\src\\backend\\contracts\\Handler.sol": {
+      "lastModificationDate": 1686115960828,
+      "contentHash": "6d98f7005261305d11697baccdd9b887",
+      "sourceName": "src/backend/contracts/Handler.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IDeXcelFactory.sol",
+        "./interfaces/IDeXcelRouter.sol",
+        "./interfaces/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Handler"
       ]
     }
   }
