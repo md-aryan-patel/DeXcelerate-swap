@@ -31,6 +31,7 @@ export const ApplicationProvider = ({ children }) => {
   setChain();
 
   ethereum.on("accountsChanged", () => {
+    window.location.reload();
     connectWallet();
     handleContract();
   });
@@ -170,10 +171,10 @@ export const ApplicationProvider = ({ children }) => {
       );
       console.log(receipt.hash);
       await receipt.wait();
+      return receipt.hash;
     } catch (err) {
       console.log(`Application context error: ${err}`);
     }
-    return receipt1.status;
   };
 
   const changeNetwork = async (chainId) => {
@@ -198,12 +199,16 @@ export const ApplicationProvider = ({ children }) => {
     }
   };
 
-  const syncTokens = async () => {
-    const pairLength = await factoryContract.allPairsLength();
-    console.log(pairLength);
+  const getTokenName = async (_tokenAddress) => {
+    try {
+      console.log(_tokenAddress);
+      const token0 = new ethers.Contract(_tokenAddress, erc20.abi, signer);
+      const result = await token0.name();
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
   };
-
-  syncTokens();
 
   return (
     <ApplicationContext.Provider
@@ -218,6 +223,7 @@ export const ApplicationProvider = ({ children }) => {
         getLpBalance,
         swapTokens,
         changeNetwork,
+        getTokenName,
       }}
     >
       {children}

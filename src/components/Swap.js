@@ -14,6 +14,8 @@ const Swap = () => {
   const [currentPair, setCurrentPair] = useState({});
   const [allPairs, setAllPairs] = useState([]);
   const [loadin, setLoading] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState("-");
+  const redirectLink = `https://sepolia.etherscan.io/tx/${lastTransaction}`;
 
   const [value1, setValue1] = useState(0);
 
@@ -38,11 +40,12 @@ const Swap = () => {
     )
       return alert("Can't procede transaction with current values");
     if (parseInt(value1) > token1Balance) return alert("Insufficient Balance");
-    let status;
+    let hash;
 
     try {
       setLoading(true);
-      status = await swapTokens(currentPair.token0, currentPair.token1, value1);
+      hash = await swapTokens(currentPair.token0, currentPair.token1, value1);
+      setLastTransaction(hash);
       setLoading(false);
       alert("Transaction successfull");
     } catch (err) {
@@ -85,12 +88,6 @@ const Swap = () => {
 
   return (
     <div className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center">
-      <div
-        onClick={switchPair}
-        className="flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-slate-600 rounded-md backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center"
-      >
-        <AiOutlineArrowDown className="text-white font-bold" />
-      </div>
       <Modal
         isOpen={isOpen}
         onRequestClose={togglePopup}
@@ -172,6 +169,32 @@ const Swap = () => {
         </button>
       </div>
       {loadin ? <Loader message={swapMessage} /> : <></>}
+      <div className="flex w-[35%] flex-col rounded-lg m-1 border border-slate-600">
+        <div className="flex w-full px-2 py-1 text-sm font-semibold border-b border-slate-600 font-poppins text-white bg-gradient-to-r from-indigo-500/10 to-purple-500/10 saturate-[2] hover:from-indigo-400/10 hover:to-purple-400/10 rounded-t">
+          Last transaction #
+        </div>
+        <div
+          className={`flex items-center ${
+            lastTransaction === "-"
+              ? "justify-center"
+              : " justify-start cursor-pointer underline"
+          } px-2 py-1 text-sm font-semibold text-ellipsis overflow-hidden text-slate-300 hover:text-white`}
+        >
+          {lastTransaction !== "-" ? (
+            <a href={redirectLink} target="_blank">
+              {lastTransaction}
+            </a>
+          ) : (
+            <div>{lastTransaction}</div>
+          )}
+        </div>
+      </div>
+      <div
+        onClick={switchPair}
+        className="flex absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-[100%] border border-slate-600 rounded-md backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center"
+      >
+        <AiOutlineArrowDown className="text-white font-bold" />
+      </div>
     </div>
   );
 };
