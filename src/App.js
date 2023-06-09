@@ -8,6 +8,7 @@ import Swap from "./components/Swap";
 import CreatePair from "./components/CreatePair";
 import AddLiquidity from "./components/AddLiquidity";
 import ErrorPage from "./components/ErrorPage";
+import MyTransaction from "./components/MyTransaction";
 
 function App() {
   const location = useLocation();
@@ -42,6 +43,7 @@ function App() {
             <Route path="/swap" element={<Swap />} />
             <Route path="/createpair" element={<CreatePair />} />
             <Route path="/liquidity" element={<AddLiquidity />} />
+            <Route path="/transaction" element={<MyTransaction />} />
           </Routes>
         )}
       </div>

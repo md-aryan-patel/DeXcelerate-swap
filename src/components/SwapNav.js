@@ -16,7 +16,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className="flex fixed bg-[#131a2a] z-50 w-full h-fit justify-between items-center py-4 navbar backdrop-filter backdrop-blur-lg border-b-[1px] border-slate-600">
+      <nav className="flex fixed bg-primary z-50 w-full h-fit justify-between items-center py-4 navbar backdrop-filter backdrop-blur-lg bg-opacity-40">
         <div
           onClick={() => navigate("/#home")}
           className="flex w-fit flex-row ml-10 cursor-pointer select-none"
@@ -26,6 +26,13 @@ function Navbar() {
           </h3>
         </div>
         <div className="flex flex-row">
+          <button
+            onClick={() => navigate("/transaction")}
+            className="text-slate-300 font-poppins text-sm font-semibold
+            hover:text-slate-100 ml-10"
+          >
+            My Transaction
+          </button>
           <button
             onClick={() => navigate("/createpair")}
             className="text-slate-300 font-poppins text-sm font-semibold

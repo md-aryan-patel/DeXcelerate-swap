@@ -4,10 +4,27 @@ import {
   where,
   getDocs,
   addDoc,
-  getDoc,
+  orderBy,
 } from "firebase/firestore";
 
 import { db } from "./firebase.js";
+
+const pushTransaction = async (_from, _transactionHash, _type) => {
+  const date = new Date();
+
+  const data = {
+    hash: _transactionHash,
+    date: date,
+    type: _type,
+  };
+  try {
+    const collectionRef = collection(db, _from);
+    const docRef = await addDoc(collectionRef, data);
+    console.log("Transaction pushed successfully with ID: ", docRef.id);
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const pushPair = async (_token0, _name0, _token1, _name1, _pair) => {
   const data = {
@@ -70,9 +87,6 @@ const fetchData = async () => {
   try {
     const collectionRef = collection(db, "tokens");
     const querySnapshot = await getDocs(collectionRef);
-    // querySnapshot.forEach((doc) => {
-    //   console.log(doc.id, " => ", doc.data());
-    // });
     const data = await querySnapshot.data();
     return data;
   } catch (error) {
@@ -80,4 +94,26 @@ const fetchData = async () => {
   }
 };
 
-export default { pushPair, fetchData, fetchAllPairs };
+const fetchTransaction = async (_for) => {
+  const transactions = [];
+  try {
+    const collectionRef = collection(db, _for);
+    const querySnapshot = await getDocs(collectionRef);
+
+    querySnapshot.forEach((doc) => {
+      transactions.push(doc.data());
+    });
+    transactions.sort((a, b) => a.date - b.date);
+    return transactions;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export default {
+  pushPair,
+  fetchData,
+  fetchAllPairs,
+  pushTransaction,
+  fetchTransaction,
+};

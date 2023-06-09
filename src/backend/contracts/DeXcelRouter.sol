@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces/IDeXcelRouter.sol";
+import "./interfaces/IWeth.sol";
 import "./Utils/SafeMath.sol";
 import "./Utils/DeXcelLibrary.sol";
 import "./interfaces/IDeXcelFactory.sol";
@@ -100,6 +101,38 @@ contract DeXcelRouter is IDeXcelRouter {
         liquidity = IDeXcelPair(pair).mint(to);
     }
 
+    function addLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    )
+        external
+        payable
+        virtual
+        override
+        returns (uint amountToken, uint amountETH, uint liquidity)
+    {
+        (amountToken, amountETH) = _addLiquidity(
+            token,
+            WETH,
+            amountTokenDesired,
+            msg.value,
+            amountTokenMin,
+            amountETHMin
+        );
+        address pair = DeXcelLibrary.pairFor(factory, token, WETH);
+        TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
+        IWETH(WETH).deposit{value: amountETH}();
+        assert(IWETH(WETH).transfer(pair, amountETH));
+        liquidity = DeXcelPair(pair).mint(to);
+        // refund dust eth, if any
+        if (msg.value > amountETH)
+            TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
+    }
+
     // **** REMOVE LIQUIDITY ****
     function removeLiquidity(
         address tokenA,
@@ -166,5 +199,30 @@ contract DeXcelRouter is IDeXcelRouter {
             amounts[0]
         );
         _swap(amounts, path, to);
+    }
+
+    function swapETHForExactTokens(
+        uint amountOut,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable virtual override returns (uint[] memory amounts) {
+        require(path[0] == WETH, "UniswapV2Router: INVALID_PATH");
+        amounts = DeXcelLibrary.getAmountsIn(factory, amountOut, path);
+        require(
+            amounts[0] <= msg.value,
+            "UniswapV2Router: EXCESSIVE_INPUT_AMOUNT"
+        );
+        IWETH(WETH).deposit{value: amounts[0]}();
+        assert(
+            IWETH(WETH).transfer(
+                DeXcelLibrary.pairFor(factory, path[0], path[1]),
+                amounts[0]
+            )
+        );
+        _swap(amounts, path, to);
+        // refund dust eth, if any
+        if (msg.value > amounts[0])
+            TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
     }
 }

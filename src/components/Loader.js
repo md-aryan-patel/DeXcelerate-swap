@@ -12,7 +12,7 @@ const Loader = ({ message }) => {
   };
 
   return (
-    <div className="flex items-center justify-center content-center w-screen h-screen absolute z-20 bg-transparent backdrop-blur-md">
+    <div className="flex items-center justify-center content-center w-screen h-screen absolute z-[9999] bg-transparent backdrop-blur-md">
       <div className={style.box}>
         <ScaleLoader
           color="#2d62ba"

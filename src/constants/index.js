@@ -17,6 +17,10 @@ export const navLinks = [
   },
 ];
 
+export const CREATE_PAIR = "PAIR CREATION";
+export const ADD_LIQUIDITY = "ADD LIQUIDITY";
+export const SWAP = "SWAP";
+
 export const swapMessage =
   "Don't reload your page\nFew metamask pop-up will appear.";
 

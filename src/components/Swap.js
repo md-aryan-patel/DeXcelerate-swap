@@ -4,6 +4,8 @@ import { AiOutlineClose, AiOutlineArrowDown } from "react-icons/ai";
 import { ApplicationContext } from "../context/ApplicationContext";
 import Loader from "./Loader";
 import { swapMessage } from "../constants";
+import cloud from "../assets/cloud.jpg";
+import env from "../utils/constants";
 
 const Swap = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,13 +17,17 @@ const Swap = () => {
   const [allPairs, setAllPairs] = useState([]);
   const [loadin, setLoading] = useState(false);
   const [lastTransaction, setLastTransaction] = useState("-");
+  const [isInputVisible, setIsInputVisible] = useState();
+  const [isSwitcherVisible, setIsSwitcherVisible] = useState(false);
   const redirectLink = `https://sepolia.etherscan.io/tx/${lastTransaction}`;
 
   const [value1, setValue1] = useState(0);
+  const [value2, setValue2] = useState(0);
 
   const inputRef1 = useRef();
+  const inputRef2 = useRef();
 
-  const { fetchAllPairs, fetchBalance, swapTokens } =
+  const { fetchAllPairs, fetchBalance, swapTokens, swapWithEth } =
     useContext(ApplicationContext);
 
   useEffect(() => {
@@ -32,13 +38,37 @@ const Swap = () => {
     setIsOpen(!isOpen);
   };
 
+  const swapTokenWithEth = async () => {
+    if (value2 === "0") return alert("Token Out value cant be 0");
+    setLoading(true);
+    try {
+      const result = await swapWithEth(currentPair.token1, value2, value1);
+      if (result === -1) {
+        setLoading(false);
+        return alert("some error occurred");
+      } else {
+        setLoading(false);
+        setLastTransaction(result);
+        return alert("Transaction successfull");
+      }
+    } catch (err) {
+      setLoading(false);
+      console.log(err);
+      return alert("Some error occurred");
+    }
+  };
+
   const swap = async () => {
     if (
       option1 === "No token selected" ||
       option2 === "No token selected" ||
-      parseInt(value1) === 0
+      value1 === "0"
     )
       return alert("Can't procede transaction with current values");
+    if (currentPair.token0 === env.WETH) {
+      swapTokenWithEth();
+      return;
+    }
     if (parseInt(value1) > token1Balance) return alert("Insufficient Balance");
     let hash;
 
@@ -64,6 +94,16 @@ const Swap = () => {
 
   const setupFunction = async (_item) => {
     setCurrentPair(await _item);
+    if (_item.token1 === env.WETH) {
+      switchPair();
+    }
+    if (_item.token0 === env.WETH) {
+      setIsInputVisible(true);
+      setIsSwitcherVisible(false);
+    } else {
+      setIsInputVisible(false);
+      setIsSwitcherVisible(true);
+    }
     setOption1(await _item.name0);
     setOption2(await _item.name1);
     setIsOpen(false);
@@ -87,7 +127,15 @@ const Swap = () => {
   };
 
   return (
-    <div className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center">
+    <div
+      style={{
+        backgroundImage: `url(${cloud})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+      }}
+      className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b bg-primary opacity-60"></div>
       <Modal
         isOpen={isOpen}
         onRequestClose={togglePopup}
@@ -124,7 +172,7 @@ const Swap = () => {
           </div>
         </div>
       </Modal>
-      <div className="fle flex-col w-[35%] rounded-xl bg-[#111524] p-4">
+      <div className="fle z-50 flex-col w-[35%] rounded-xl bg-[#111524] p-4">
         <button
           onClick={togglePopup}
           className="flex w-full mb-1 p-3 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 saturate-[2] hover:from-indigo-400/10 hover:to-purple-400/10 rounded-lg cursor-pointer justify-center items-center font-semibold text-lg text-white"
@@ -153,6 +201,16 @@ const Swap = () => {
 
         <div className=" flex flex-col w-full h-fit rounded-2xl border border-slate-600 p-2 my-1">
           <div className=" flex flex-row">
+            <input
+              type="number"
+              min={0}
+              ref={inputRef2}
+              onChange={() => setValue2(inputRef2.current.value)}
+              placeholder={0}
+              className={`border-none bg-transparent ${
+                !isInputVisible ? "hidden" : ""
+              } w-1/2 placeholder:text-2xl font-bold text-white text-2xl p-2 m-1 rounded-md focus:outline-none focus:ring-0`}
+            />
             <div className="flex font-semibold w-full cursor-pointer justify-center items-center text-slate-100 text-base p-2 m-1 rounded-md bg-gradient-to-r from-indigo-500/10 to-purple-500/10 saturate-[2] hover:from-indigo-400/10 hover:to-purple-400/10">
               {option2}
             </div>
@@ -169,12 +227,12 @@ const Swap = () => {
         </button>
       </div>
       {loadin ? <Loader message={swapMessage} /> : <></>}
-      <div className="flex w-[35%] flex-col rounded-lg m-1 border border-slate-600">
+      <div className="flex w-[35%] flex-col rounded-lg m-1 border bg-[#111524] border-slate-600">
         <div className="flex w-full px-2 py-1 text-sm font-semibold border-b border-slate-600 font-poppins text-white bg-gradient-to-r from-indigo-500/10 to-purple-500/10 saturate-[2] hover:from-indigo-400/10 hover:to-purple-400/10 rounded-t">
           Last transaction #
         </div>
         <div
-          className={`flex items-center ${
+          className={`flex items-center z-50 ${
             lastTransaction === "-"
               ? "justify-center"
               : " justify-start cursor-pointer underline"
@@ -191,7 +249,9 @@ const Swap = () => {
       </div>
       <div
         onClick={switchPair}
-        className="flex absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-[100%] border border-slate-600 rounded-md backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center"
+        className={`absolute top-[48%] z-50 left-1/2 ${
+          !isSwitcherVisible ? "hidden" : "flex"
+        } transform -translate-x-1/2 -translate-y-[100%] border border-slate-600 rounded-md backdrop-filter backdrop-blur-lg bg-opacity-40 cursor-pointer w-[32px] h-[32px] justify-center items-center`}
       >
         <AiOutlineArrowDown className="text-white font-bold" />
       </div>

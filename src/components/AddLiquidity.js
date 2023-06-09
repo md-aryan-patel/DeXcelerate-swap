@@ -4,6 +4,8 @@ import { AiOutlineClose } from "react-icons/ai";
 import { ApplicationContext } from "../context/ApplicationContext";
 import Loader from "./Loader";
 import { swapMessage } from "../constants";
+import cloud from "../assets/cloud.jpg";
+import env from "../utils/constants";
 
 function AddLiquidity() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,8 +24,13 @@ function AddLiquidity() {
   const inputRef1 = useRef();
   const inputRef2 = useRef();
 
-  const { fetchAllPairs, fetchBalance, _addLiquidity, getLpBalance } =
-    useContext(ApplicationContext);
+  const {
+    fetchAllPairs,
+    fetchBalance,
+    _addLiquidity,
+    getLpBalance,
+    addLiquidityEth,
+  } = useContext(ApplicationContext);
 
   useEffect(() => {
     pair();
@@ -31,6 +38,38 @@ function AddLiquidity() {
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
+  };
+
+  const addEthLiquidity = async () => {
+    if (currentPair.token0 === env.WETH) {
+      try {
+        const res = await addLiquidityEth(currentPair.token1, value2, value1);
+        if (res === -1) {
+          setVariables("Unablet to add liquidity");
+          return;
+        }
+        setVariables("Transaction successfull");
+        return;
+      } catch (err) {
+        console.log(err);
+        setVariables("Some error occurred");
+        return;
+      }
+    } else if (currentPair.token1 == env.WETH) {
+      try {
+        const res = await addLiquidityEth(currentPair.token0, value1, value2);
+        if (res === -1) {
+          setVariables("Unablet to add liquidity");
+          return;
+        }
+        setVariables("Transaction successfull");
+        return;
+      } catch (err) {
+        console.log(err);
+        setVariables("Some error occurred");
+        return;
+      }
+    }
   };
 
   const addLiquidity = async () => {
@@ -41,6 +80,13 @@ function AddLiquidity() {
       value2 === "0"
     )
       return alert("Can't procede transaction with current values");
+
+    if (currentPair.token0 === env.WETH || currentPair.token1 === env.WETH) {
+      setLoading(true);
+      addEthLiquidity();
+      return;
+    }
+
     if (parseInt(value1) > token1Balance || parseInt(value2) > token2Balance)
       return alert("Insufficient Balance");
     try {
@@ -51,13 +97,17 @@ function AddLiquidity() {
         value1,
         value2
       );
-      setLoading(false);
-      alert("Transaction successfull");
+      setVariables("Transaction successfull");
+      return;
     } catch (err) {
       console.log(err);
-      setLoading(false);
+      setVariables("Some error occurred");
+      return;
     }
+  };
 
+  const setVariables = async (_message) => {
+    setLoading(false);
     inputRef1.current.value = "";
     inputRef2.current.value = "";
     const [balance0, balance1] = await fetchBalance(
@@ -67,6 +117,7 @@ function AddLiquidity() {
     setLPBalance(await getLpBalance(currentPair.pair));
     setToken1Balance(balance0);
     setToken2Balance(balance1);
+    if (_message !== "") return alert(_message);
   };
 
   const setupFunction = async (_item) => {
@@ -87,7 +138,15 @@ function AddLiquidity() {
   };
 
   return (
-    <div className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center">
+    <div
+      style={{
+        backgroundImage: `url(${cloud})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+      }}
+      className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b bg-primary opacity-60"></div>
       <Modal
         isOpen={isOpen}
         onRequestClose={togglePopup}
@@ -124,7 +183,7 @@ function AddLiquidity() {
           </div>
         </div>
       </Modal>
-      <div className="fle flex-col w-[35%] rounded-xl bg-[#111524] p-4">
+      <div className="fle z-50 flex-col w-[35%] rounded-xl bg-[#111524] p-4">
         <button
           onClick={togglePopup}
           className="flex w-full mb-1 p-3 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 saturate-[2] hover:from-indigo-400/10 hover:to-purple-400/10 rounded-lg cursor-pointer justify-center items-center font-semibold text-lg text-white"

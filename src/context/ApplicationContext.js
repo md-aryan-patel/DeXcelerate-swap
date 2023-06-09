@@ -6,6 +6,7 @@ import routerAbi from "../backend/artifacts/src/backend/contracts/DeXcelRouter.s
 import pairAbi from "../backend/artifacts/src/backend/contracts/DeXcelPair.sol/DeXcelPair.json";
 import erc20 from "../backend/artifacts/src/backend/contracts/interfaces/IERC20.sol/IERC20.json";
 import env from "../utils/constants";
+import { ADD_LIQUIDITY, CREATE_PAIR, SWAP } from "../constants";
 
 const toWei = (num) => ethers.utils.parseEther(num.toString());
 const toEth = (num) => ethers.utils.formatEther(num);
@@ -97,6 +98,7 @@ export const ApplicationProvider = ({ children }) => {
         event.args.name1,
         event.args.pair
       );
+      database.pushTransaction(currentAccount, result.hash, CREATE_PAIR);
       return receipt.status;
     } catch (err) {
       console.error(err);
@@ -142,18 +144,66 @@ export const ApplicationProvider = ({ children }) => {
     const receipt2 = await token1.approve(env.router, toWei(_amount1));
     await receipt2.wait();
     const data = Math.floor(Date.now() / 1000) + 3600;
-    const result = await routerContract.addLiquidity(
-      _token0,
-      _token1,
-      toWei(_amount0),
-      toWei(_amount1),
-      0,
-      0,
-      currentAccount,
-      data
-    );
-    const status = await result.wait();
-    return status;
+    try {
+      const result = await routerContract.addLiquidity(
+        _token0,
+        _token1,
+        toWei(_amount0),
+        toWei(_amount1),
+        0,
+        0,
+        currentAccount,
+        data
+      );
+      const status = await result.wait();
+      database.pushTransaction(currentAccount, result.hash, ADD_LIQUIDITY);
+      return status;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const addLiquidityEth = async (_token, _tokenAmount, _etherAmount) => {
+    const token = new ethers.Contract(_token, erc20.abi, signer);
+    const receipt = await token.approve(env.router, toWei(_tokenAmount));
+    await receipt.wait();
+    const date = Math.floor(Date.now() / 1000) + 3600;
+    try {
+      const receipt = await routerContract.addLiquidityETH(
+        _token,
+        toWei(_tokenAmount),
+        toWei(_tokenAmount),
+        toWei(_etherAmount),
+        currentAccount,
+        date,
+        { value: toWei(_etherAmount) }
+      );
+      database.pushTransaction(currentAccount, receipt.hash, ADD_LIQUIDITY);
+      await receipt.wait();
+      return receipt.hash;
+    } catch (err) {
+      console.log(err);
+      return -1;
+    }
+  };
+
+  const swapWithEth = async (_token, _tokenOut, _ethAmount) => {
+    const date = Math.floor(Date.now() / 1000) + 3600;
+    try {
+      const result = await routerContract.swapETHForExactTokens(
+        toWei(_tokenOut),
+        [env.WETH, _token],
+        currentAccount,
+        date,
+        { value: toWei(_ethAmount) }
+      );
+      database.pushTransaction(currentAccount, result.hash, SWAP);
+      await result.wait();
+      return result.hash;
+    } catch (err) {
+      console.log(err);
+      return -1;
+    }
   };
 
   const swapTokens = async (_token0, _token1, _amount0) => {
@@ -169,6 +219,7 @@ export const ApplicationProvider = ({ children }) => {
         currentAccount,
         data
       );
+      database.pushTransaction(currentAccount, receipt.hash, SWAP);
       console.log(receipt.hash);
       await receipt.wait();
       return receipt.hash;
@@ -224,6 +275,8 @@ export const ApplicationProvider = ({ children }) => {
         swapTokens,
         changeNetwork,
         getTokenName,
+        addLiquidityEth,
+        swapWithEth,
       }}
     >
       {children}
