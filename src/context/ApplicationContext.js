@@ -38,6 +38,7 @@ export const ApplicationProvider = ({ children }) => {
   });
 
   ethereum.on("networkChanged", () => {
+    window.location.reload();
     setCurrentChain(ethereum.networkVersion);
   });
 
@@ -240,10 +241,8 @@ export const ApplicationProvider = ({ children }) => {
       return 1;
     } catch (error) {
       if (error.code === 4902) {
-        // User rejected the network switch
         console.log("User rejected network switch");
       } else {
-        // Other error occurred
         console.error("Error occurred while switching network:", error);
       }
       return 0;

@@ -45,17 +45,18 @@ const Swap = () => {
       const result = await swapWithEth(currentPair.token1, value2, value1);
       if (result === -1) {
         setLoading(false);
-        return alert("some error occurred");
+        alert("some error occurred");
       } else {
         setLoading(false);
         setLastTransaction(result);
-        return alert("Transaction successfull");
+        alert("Transaction successfull");
       }
     } catch (err) {
       setLoading(false);
       console.log(err);
-      return alert("Some error occurred");
+      alert("Some error occurred");
     }
+    await setDisplayBalance();
   };
 
   const swap = async () => {
@@ -82,8 +83,12 @@ const Swap = () => {
       console.log(`Swap error : ${err}`);
       setLoading(false);
     }
+    await setDisplayBalance();
+  };
 
+  const setDisplayBalance = async () => {
     inputRef1.current.value = "";
+    inputRef2.current.value = "";
     const [balance0, balance1] = await fetchBalance(
       currentPair.token0,
       currentPair.token1
@@ -93,9 +98,14 @@ const Swap = () => {
   };
 
   const setupFunction = async (_item) => {
-    setCurrentPair(await _item);
     if (_item.token1 === env.WETH) {
-      switchPair();
+      const pair = _item;
+      [pair.token0, pair.token1] = [pair.token1, pair.token0];
+      [pair.name0, pair.name1] = [pair.name1, pair.name0];
+      setCurrentPair(pair);
+      _item = pair;
+    } else {
+      setCurrentPair(await _item);
     }
     if (_item.token0 === env.WETH) {
       setIsInputVisible(true);
@@ -134,6 +144,7 @@ const Swap = () => {
         backgroundSize: "cover",
       }}
       className="flex w-screen flex-col bg-[#131a2a] h-screen justify-center items-center"
+      onClick={() => console.log(currentPair)}
     >
       <div className="absolute inset-0 bg-gradient-to-b bg-primary opacity-60"></div>
       <Modal
@@ -215,8 +226,17 @@ const Swap = () => {
               {option2}
             </div>
           </div>
-          <div className="p-1 ms-2 text-white font-bold text-sm">
-            Balance: {token2Balance}
+          <div className="flex justify-between">
+            <div className="p-1 ms-2 text-white font-bold text-sm">
+              Balance: {token2Balance}
+            </div>
+            {isInputVisible ? (
+              <div className=" text-white p-1 me-2 font-semibold text-xs items-center">
+                Enter amount of token out
+              </div>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
         <button
